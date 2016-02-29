@@ -1,2 +1,3 @@
-# rgbmypc-firmware
-The firmware development for rgbmypc
+# RGBMyPC firmware
+
+The microcontroller firmware for RGBMyPC
