@@ -5,7 +5,7 @@
  * Firmware constants
  */
 
-const String VERSION        = "1.0";
+const String VERSION        = "1.0.2-alpha";
 const String SERIAL_STARTER = "RGB";
 
 /**
@@ -14,7 +14,11 @@ const String SERIAL_STARTER = "RGB";
 
 #define PIN 6
 #define LEDS 60
+#define BAUD_RATE 9600
+#define SERIAL_READING_TO 60
+#define DEFAULT_COLOR "#FF0000"
 
+// Create a new NeoPixel strip
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(LEDS, PIN, NEO_GRB + NEO_KHZ800);
 
 /**
@@ -48,13 +52,39 @@ void effectBreathing(int r, int g, int b, int rounds = 3)
    strip.show();
 }
 
-void setup() {  
-  Serial.begin(9600);
+void setPixelsColor(int sectionBegin, int sectionEnd, int r, int g, int b)
+{
+  int sizeSection = sectionEnd - sectionBegin;
+  for (int i=0; i < sizeSection; i++)
+  {
+    int currentLED = i + sectionBegin;
+    strip.setPixelColor(currentLED, r, g, b);
+  }
+
+  strip.show();
+}
+
+/**
+ * Reset helper function
+ */
+
+ void (* resetArduino) (void) = 0;
+
+/**
+ * The setup
+ */
+
+void setup() {
+  // Setting up USB serial connection on 9600 baudrate (bits/sec)
+  Serial.begin(BAUD_RATE);
+  // Timeout is important for reading converting serial received bytes to strings
+  Serial.setTimeout(SERIAL_READING_TO);
 
   strip.begin();
   strip.show();
 
-  char hexstring[] = "#00960D";
+  // Default color scheme
+  char hexstring[] = DEFAULT_COLOR;
   
   long r = hexToRGB(hexstring, 'r');
   long g = hexToRGB(hexstring, 'g');
@@ -62,18 +92,17 @@ void setup() {
   
   colorWipe(strip.Color(r, g, b), 50);
 
-
-  //effectBreathing(r, g, b);
-
-
+  //rainbowCycle(50);
 }
 
 void loop() {
   String command;
 
+  // Check if there is new serial input
   if (Serial.available() > 0) 
   {
-    command = readSerial();
+    // Read the input
+    command = Serial.readString();
 
     if (command == SERIAL_STARTER)
     {
@@ -83,6 +112,18 @@ void loop() {
     if (command == SERIAL_STARTER + "+VERSION")
     {
       Serial.println(VERSION);
+    }
+
+    if (command == SERIAL_STARTER + "+RESET")
+    {
+      Serial.println("OK");
+      resetArduino();
+    }
+
+    if (command == SERIAL_STARTER + "+OFF")
+    {
+      setPixelsColor(0, LEDS, 0, 0, 0);
+      Serial.println("OK");
     }
 
     if (command == SERIAL_STARTER + "+STATIC_COLOR")
@@ -204,6 +245,60 @@ void loop() {
           break;
         }
       }
+    }
+
+    if (command == SERIAL_STARTER + "+INDV_COLOR_SECT")
+    {
+      Serial.println("SUPPLY");
+      while (true)
+      {
+        
+        if (Serial.available() > 0)
+        {
+          int sectionBegin = readSerial().toInt();
+
+          while (true)
+          {
+            if (Serial.available() > 0)
+            {
+              int sectionEnd = readSerial().toInt();
+
+              // Check if section length is valid
+              if (sectionBegin > sectionEnd)
+              {
+                Serial.println("FALSE");
+                break;
+              }
+
+              while (true)
+              {
+                if (Serial.available() > 0)
+                {
+                  String hexInput = readSerial();
+                  const char * hexColor = hexInput.c_str();
+      
+                  int r = hexToRGB(hexColor, 'r');
+                  int g = hexToRGB(hexColor, 'g');
+                  int b = hexToRGB(hexColor, 'b');
+
+                  setPixelsColor(sectionBegin, sectionEnd, r, g, b);
+
+                  Serial.println(hexInput);
+                  
+                  break; 
+                }
+              }
+
+              
+              
+              break;
+            }
+          }
+
+          break;
+        }
+      }
+
     }
 
     
