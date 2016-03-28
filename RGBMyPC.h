@@ -12,11 +12,18 @@ class RGBMyPC
     
     //LEDController* cont = this->GetCont();
     //LEDController* GetCont();
+
+    // EEPROM
+    static bool WriteEEPROM(int address, int data, bool overwrite = false);
+    static int ReadEEPROM(int address);
+    static bool UnsetEEPROM(int address);
+    static void ResetEEPROM();
+
     
-    String ReadSerial(bool force = false);
-    String* AskInput(int times = 3);
-    bool SerialReceived();
-    long ConvertToRGB(const char hexstring[], char i);
+    static String ReadSerial(bool force = false);
+    static String* AskInput(int times = 3);
+    static bool SerialReceived();
+    static long ConvertToRGB(const char hexstring[], char i);
 
   private:
 

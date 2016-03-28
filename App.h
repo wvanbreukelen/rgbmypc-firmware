@@ -18,7 +18,6 @@ class App : public RGBMyPC, public Commands
     
     String GetVersion();
     void SetVersion(String version);
-
     // Command helper functions, declared in App
     void Version();
 };

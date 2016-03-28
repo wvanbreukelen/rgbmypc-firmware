@@ -257,28 +257,48 @@ void runCmd(String cmd)
  */
 
 void setup() {
+  
+
+  // Provide the data to the app initialisator
   app.Init();
+
+  //app.WriteEEPROM(0, 7);
+
+  // Read data from EEPROM
+  //app.ResetEEPROM();
+
+  //app.Status();
 
   LEDController* cont = app.GetCont();
 
-  String hex = app.AskInput(1)[0];
+  long r = app.ReadEEPROM(1);
+  long g = app.ReadEEPROM(2);
+  long b = app.ReadEEPROM(3);
 
-  const char* hexstring = hex.c_str();
+  cont->ColorWipe(cont->Color(r, g, b), 50);
+
+  app.StaticColor();
+
+  //String hex = app.AskInput(1)[0];
+
+  //const char* hexstring = hex.c_str();
   
-  long r = app.ConvertToRGB(hexstring, 'r');
-  long g = app.ConvertToRGB(hexstring, 'g');
-  long b = app.ConvertToRGB(hexstring, 'b');
+  //long r = app.ConvertToRGB(hexstring, 'r');
+  //long g = app.ConvertToRGB(hexstring, 'g');
+  //long b = app.ConvertToRGB(hexstring, 'b');
 
-  cont->ColorWipe(strip.Color(r, g, b), 50);
+  //cont->ColorWipe(strip.Color(r, g, b), 50);
 
   //strip.SetPixelsColor(0, 30 , 0, 255, 0);
 
   //strip.RainbowCycle(50);
 
-  
+ 
 }
 
 void loop() {
   String command;
+
+  // Write data to EPPROM, so we can remember the last provided color of the first LED, if the Arduino was turned off
   
 }

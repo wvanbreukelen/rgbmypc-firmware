@@ -5,6 +5,7 @@
  #include <pins_arduino.h>
 #endif
 
+#include <EEPROM.h>
 #include "RGBMyPC.h"
 
 //LEDController* RGBMyPC::GetCont()
@@ -23,10 +24,12 @@ String RGBMyPC::ReadSerial(bool force)
   {
     while (true)
     {
-      if (this->SerialReceived())
+      if (SerialReceived())
       {
         return Serial.readString();
       }
+
+      delay(50);
     }
   }
   
@@ -40,10 +43,64 @@ String* RGBMyPC::AskInput(int times)
   for (int i=0; i < times; i++)
   {
     Serial.println("SUPPLY");
-    inputs[i] = this->ReadSerial(true); 
+    inputs[i] = ReadSerial(true); 
   }
 
   return inputs;
+}
+
+bool RGBMyPC::WriteEEPROM(int address, int data, bool overwrite)
+{
+  if (address <= EEPROM.length())
+  {
+    if (EEPROM.read(address) == 255)
+    {
+      EEPROM.write(address, data);
+      return true;
+    } else {
+      if (overwrite)
+      {
+        EEPROM.write(address, data);
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+int RGBMyPC::ReadEEPROM(int address)
+{
+  if (address <= EEPROM.length())
+  {
+    return EEPROM.read(address);
+  }
+
+  return 0;
+}
+
+bool RGBMyPC::UnsetEEPROM(int address)
+{
+  if (address <= EEPROM.length())
+  {
+    if (EEPROM.read(address) != 255)
+    {
+      EEPROM.write(address, 255);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+void RGBMyPC::ResetEEPROM()
+{
+  int length = EEPROM.length();
+  
+  for (int i=0; i <= length; i++)
+  {
+    EEPROM.write(i, 255);
+  }
 }
 
 long RGBMyPC::ConvertToRGB(const char hexstring[], char i)
